@@ -11,11 +11,20 @@ library(shiny)
 library(tidyverse)
 library(plotly)
 library(readxl)
+library(googlesheets4)
 library(here)
 
-covid <- read_excel(here("data", "mbts_covid.xlsx")) %>% 
+url <- "https://docs.google.com/spreadsheets/d/1poSbKDSkWFOewSkB-7mswwxJm20EVfTUtbxAdjfnOXM/edit?usp=sharing"
+
+gs4_deauth()  #don't need authorization for a public shared link
+
+covid <- read_sheet(url)%>% 
     arrange(Date) %>% 
     mutate(new_cases = total_cases - lag(total_cases))
+
+# covid <- read_excel(here("data", "mbts_covid.xlsx")) %>% 
+#     arrange(Date) %>% 
+#     mutate(new_cases = total_cases - lag(total_cases))
 
 covid_cols <- names(covid)[2:length(covid)]
 
@@ -37,8 +46,11 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
            plotlyOutput("covidPlot"),
-           helpText("Data is collected from weekly Manchester-By-The-Sea Board of Health updates.  Archives can be accessed from the town website:"),
-           tags$a(href="http://manchester.ma.us/337/Board-of-Health", "http://manchester.ma.us/337/Board-of-Health")
+           helpText("Data is collected from weekly", a(href="http://manchester.ma.us/337/Board-of-Health", "Manchester-By-The-Sea Board of Health updates")),
+           helpText("Tabulated data is available for download from", a("google sheets", href=url)),
+           helpText("Source code is available for download from", a(href="https://github.com/gordon-turner/mbts-covid", "github"))
+           
+           
         )
     )
 )
