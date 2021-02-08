@@ -12,6 +12,7 @@ library(tidyverse)
 library(plotly)
 library(readxl)
 library(googlesheets4)
+library(zoo)
 library(here)
 
 url <- "https://docs.google.com/spreadsheets/d/1poSbKDSkWFOewSkB-7mswwxJm20EVfTUtbxAdjfnOXM/edit?usp=sharing"
@@ -37,10 +38,9 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            selectInput("covid_col",
+            varSelectInput("covid_col",
                         "Data:",
-                        choices = covid_cols,
-                        selected = covid_cols[1])
+                        covid %>% select(-Date))
         ),
 
         # Show a plot of the generated distribution
@@ -62,7 +62,8 @@ server <- function(input, output) {
 
         gg <- ggplot(covid, aes_string(x="Date", y=input$covid_col)) + 
             geom_col()+
-            geom_smooth()
+            geom_smooth(method = "loess", span=0.5)
+#            geom_line(aes(x=Date, y=rollmean(!!!input$covid_col, 3, na.pad=TRUE)))
             
         ggplotly(gg)
     })
