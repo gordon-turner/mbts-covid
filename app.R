@@ -76,7 +76,7 @@ ui <- fluidPage(
         mainPanel(
            plotlyOutput("covidPlot"),
            helpText("Town data is collected from weekly", a(href="http://manchester.ma.us/337/Board-of-Health", "Manchester-By-The-Sea Board of Health updates")),
-           helpText("School data is collected from superintendent emails and cross-checked with", a(href="https://ma01807435.schoolwires.net/Page/1557", "district monthly updates")),
+           helpText("School data is collected from superintendent emails and cross-checked with", a(href="https://ma01807435.schoolwires.net/Page/1557", "district monthly updates"), "or the district", a(href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBa5Hc2rniwiVAimtn_pUSaSArcrueR6L47_NItYd6jJhUXoBuuN8pRgWwlt3M3nF9YBd_C2wOfxk/pubhtml?gid=0&single=true", "Covid dashboard") ),
            helpText("Tabulated data is available for download from", a("google sheets", href=url)),
            helpText("Source code is available for download from", a(href="https://github.com/gordon-turner/mbts-covid", "github"))
            
