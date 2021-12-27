@@ -25,17 +25,14 @@ covid <- read_sheet(url, sheet = "town")%>%
 
 school <- read_sheet(url, sheet = "school")%>% 
     arrange(Date) %>% 
-    mutate(total_cases = cumsum(new_cases))
-    #mutate(new_cases = total_cases - lag(total_cases))
-
-school <- school %>% 
-    group_by(Date) %>% 
-    summarise(new_cases = sum(new_cases)) %>% 
-    arrange(Date) %>% 
-    mutate(total_cases = cumsum(new_cases))
-
-#school_totals <- school %>% 
-#    pivot_wider( names_from = school, values_from = new_cases, values_fn = cumsum)
+    group_by(Date, school) %>% 
+    summarize(new_cases = sum(new_cases)) %>% 
+    ungroup() %>% 
+    complete(Date, school) %>%
+    mutate(new_cases = replace_na(new_cases, 0)) %>% 
+    group_by(school) %>% 
+    mutate(total_cases = cumsum(new_cases)) %>% 
+    ungroup()
 
 # covid <- read_excel(here("data", "mbts_covid.xlsx")) %>% 
 #     arrange(Date) %>% 
@@ -76,7 +73,7 @@ ui <- fluidPage(
         mainPanel(
            plotlyOutput("covidPlot"),
            helpText("Town data is collected from weekly", a(href="http://manchester.ma.us/337/Board-of-Health", "Manchester-By-The-Sea Board of Health updates")),
-           helpText("School data is collected from superintendent emails and cross-checked with", a(href="https://ma01807435.schoolwires.net/Page/1557", "district monthly updates"), "or the district", a(href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBa5Hc2rniwiVAimtn_pUSaSArcrueR6L47_NItYd6jJhUXoBuuN8pRgWwlt3M3nF9YBd_C2wOfxk/pubhtml?gid=0&single=true", "Covid dashboard") ),
+           helpText("School data is collected from the ", a(href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRzBa5Hc2rniwiVAimtn_pUSaSArcrueR6L47_NItYd6jJhUXoBuuN8pRgWwlt3M3nF9YBd_C2wOfxk/pubhtml?gid=0&single=true", "district Covid dashboard"), " and superintendent emails cross-checked with", a(href="https://ma01807435.schoolwires.net/Page/1557", "2020-2021 district monthly updates.")),
            helpText("Tabulated data is available for download from", a("google sheets", href=url)),
            helpText("Source code is available for download from", a(href="https://github.com/gordon-turner/mbts-covid", "github"))
            
@@ -100,14 +97,14 @@ server <- function(input, output) {
                 )+
                 scale_color_manual(name = NULL, values = c("4 week rolling avg." = "black"))            
         }else if (input$source=="Schools"){
-            gg <- ggplot(school, aes_string(x="Date", y=input$school_data_col)) + 
-                geom_col(position=position_dodge())
-                # geom_line(aes(x=Date, 
-                #               y=rollmean(!!!input$school_data_col, 4, na.pad=TRUE, align="right"),
-                #               color = "rolling avg."
-                # ) 
-                # )+
-                # scale_color_manual(name = NULL, values = c("rolling avg." = "black"))
+            if (input$school_data_col == "total_cases"){
+                gg <- ggplot(school, aes_string(x="Date", y="total_cases", fill="school")) + 
+                    geom_area()
+                
+            }else{
+                gg <- ggplot(school, aes_string(x="Date", y=input$school_data_col)) + 
+                    geom_col(aes(fill=school))
+            }
         }
 
             
